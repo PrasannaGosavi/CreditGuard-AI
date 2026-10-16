@@ -1,0 +1,230 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risk Analysis | CreditGuard AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .result-layout {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 22px;
+            margin-top: 25px;
+        }
+
+        .score-panel, .details-panel {
+            padding: 28px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: linear-gradient(145deg, #101b31, #091222);
+        }
+
+        .panel-label {
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .score-number {
+            margin: 14px 0 6px;
+            font-size: clamp(48px, 8vw, 76px);
+            line-height: 1.2;
+            font-weight: 800;
+            letter-spacing: -3px;
+            background: linear-gradient(100deg, #65b4ff, #9c70ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .meter {
+            height: 12px;
+            margin: 24px 0 10px;
+            overflow: hidden;
+            border-radius: 20px;
+            background: #263550;
+        }
+
+        .meter-fill {
+            height: 100%;
+            width: {{ probability }}%;
+            max-width: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #4b9fff, #7656ff, #ff6689);
+        }
+
+        .meter-labels {
+            display: flex;
+            justify-content: space-between;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .risk-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 18px;
+            padding: 9px 14px;
+            border: 1px solid #455baf;
+            border-radius: 30px;
+            background: #17264a;
+            color: #a8c5ff;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .risk-status.high {
+            border-color: #9c4261;
+            background: #381625;
+            color: #ff9ab4;
+        }
+
+        .risk-status.medium {
+            border-color: #8b6a36;
+            background: #302515;
+            color: #ffd18b;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .detail-row:last-child {
+            border-bottom: 0;
+        }
+
+        .detail-row span:first-child {
+            color: var(--muted);
+        }
+
+        .detail-row span:last-child {
+            text-align: right;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+        }
+
+        .notice {
+            margin-top: 22px;
+            padding: 16px;
+            border: 1px solid #3a4e77;
+            border-radius: 12px;
+            background: #101e37;
+            color: #bdcce9;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        @media (max-width: 700px) {
+            .result-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <a href="/" class="brand">CreditGuard <span>AI</span></a>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/history">Prediction History</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <p class="eyebrow">ANALYSIS COMPLETE</p>
+            <h1>Credit Risk <span>Report</span></h1>
+            <p>Your model-generated estimate is ready. Review the score and applicant summary below.</p>
+        </section>
+
+        <div class="result-layout">
+            <section class="score-panel">
+                <p class="panel-label">Estimated default probability</p>
+                <div class="score-number">{{ "%.2f"|format(probability|float) }}%</div>
+                <p style="color: var(--muted); font-size: 13px;">
+                    Model-estimated probability of the target event.
+                </p>
+
+                <div class="meter" role="img"
+                     aria-label="Estimated probability {{ probability }} percent">
+                    <div class="meter-fill"></div>
+                </div>
+
+                <div class="meter-labels">
+                    <span>0% · Lower estimate</span>
+                    <span>100% · Higher estimate</span>
+                </div>
+
+                <div class="risk-status {{ risk_level|lower }}">
+                    <span>●</span>
+                    {{ risk_level }} Risk · Demonstration label
+                </div>
+
+                <div class="notice">
+                    <strong>Important:</strong> This score is a model estimate,
+                    not a lending decision. Its thresholds are illustrative and
+                    have not been validated for real-world lending.
+                </div>
+            </section>
+
+            <section class="details-panel">
+                <p class="panel-label">Applicant summary</p>
+                <h2 style="margin-top: 8px; font-size: 22px;">Submitted details</h2>
+
+                <div class="detail-row">
+                    <span>Prediction ID</span>
+                    <span>#{{ prediction_id }}</span>
+                </div>
+
+                <div class="detail-row">
+                    <span>Total annual income</span>
+                    <span>{{ "{:,.2f}".format(income|float) }}</span>
+                </div>
+
+                <div class="detail-row">
+                    <span>Credit amount</span>
+                    <span>{{ "{:,.2f}".format(credit|float) }}</span>
+                </div>
+
+                <div class="detail-row">
+                    <span>Estimated probability</span>
+                    <span>{{ "%.2f"|format(probability|float) }}%</span>
+                </div>
+
+                <div class="detail-row">
+                    <span>Risk category</span>
+                    <span>{{ risk_level }}</span>
+                </div>
+
+                <div class="actions">
+                    <a class="button-link" href="/">＋ New Assessment</a>
+                    <a class="button-link" href="/history">View History →</a>
+                </div>
+            </section>
+        </div>
+
+        <p class="disclaimer">
+            CreditGuard AI is an educational prototype trained on the Home Credit dataset.
+            It is not validated for Indian lending decisions.
+        </p>
+    </main>
+
+    <footer>CreditGuard AI · Explainable Credit Risk Project</footer>
+</body>
+</html>
